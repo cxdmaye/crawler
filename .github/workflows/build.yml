@@ -60,44 +60,98 @@ jobs:
         if: matrix.platform.os == 'windows-latest'
         shell: pwsh
         run: |
+          Write-Host "=== Windows Build Process ==="
           # 设置版本信息
           $VERSION = "${{ github.ref_name }}"
           $BUILD_TIME = Get-Date -Format "yyyy-MM-dd HH:mm:ss UTC"
           $GIT_COMMIT = "${{ github.sha }}"
 
+          Write-Host "Build info:"
+          Write-Host "  VERSION: $VERSION"
+          Write-Host "  BUILD_TIME: $BUILD_TIME" 
+          Write-Host "  GIT_COMMIT: $GIT_COMMIT"
+          Write-Host "  PLATFORM: ${{ matrix.platform.target }}"
+
           # 构建应用
+          Write-Host "Starting Wails build..."
           wails build -platform ${{ matrix.platform.target }} -clean -ldflags "-X 'main.Version=$VERSION' -X 'main.BuildTime=$BUILD_TIME' -X 'main.GitCommit=$GIT_COMMIT'"
+          
+          Write-Host "Build completed. Checking output..."
+          Get-ChildItem build/ -Recurse
 
       - name: Build application (macOS/Linux)
         if: matrix.platform.os != 'windows-latest'
         run: |
+          echo "=== macOS/Linux Build Process ==="
           # 设置版本信息
           VERSION="${{ github.ref_name }}"
           BUILD_TIME=$(date -u '+%Y-%m-%d %H:%M:%S UTC' 2>/dev/null || echo "unknown")
           GIT_COMMIT="${{ github.sha }}"
 
+          echo "Build info:"
+          echo "  VERSION: $VERSION"
+          echo "  BUILD_TIME: $BUILD_TIME"
+          echo "  GIT_COMMIT: $GIT_COMMIT"
+          echo "  PLATFORM: ${{ matrix.platform.target }}"
+
           # 构建应用
+          echo "Starting Wails build..."
           wails build -platform ${{ matrix.platform.target }} -clean -ldflags "-X 'main.Version=${VERSION}' -X 'main.BuildTime=${BUILD_TIME}' -X 'main.GitCommit=${GIT_COMMIT}'"
+          
+          echo "Build completed. Checking output..."
+          find build/ -type f -name "*" || echo "No files found in build/"
 
       - name: Package application (Windows)
         if: matrix.platform.os == 'windows-latest'
         shell: pwsh
         run: |
+          Write-Host "=== Windows Packaging ==="
           New-Item -ItemType Directory -Force -Path release
-          Copy-Item build/bin/crawler-app.exe release/
+          
+          # 检查构建输出
+          Write-Host "Build directory contents:"
+          Get-ChildItem build/bin/ -Recurse
+          
+          # 复制 exe 文件
+          if (Test-Path "build/bin/crawler-app.exe") {
+            Copy-Item build/bin/crawler-app.exe release/
+            Write-Host "✅ crawler-app.exe copied successfully"
+          } else {
+            Write-Host "❌ crawler-app.exe not found in build/bin/"
+            exit 1
+          }
+          
           # 验证文件存在
+          Write-Host "Release directory contents:"
           Get-ChildItem release/
 
       - name: Package application (macOS)
         if: matrix.platform.os == 'macos-latest'
         run: |
+          echo "=== macOS Packaging ==="
           mkdir -p release
-          cp -r build/bin/crawler-app.app release/
           
-          # 创建 pkg 安装包
-          productbuild --component release/crawler-app.app /Applications release/crawler-app.pkg
+          # 检查构建输出
+          echo "Build directory contents:"
+          find build/bin/ -type f -name "*" || echo "No files found"
+          ls -la build/bin/ || echo "build/bin/ directory not found"
+          
+          # 复制 app 文件
+          if [ -d "build/bin/crawler-app.app" ]; then
+            cp -r build/bin/crawler-app.app release/
+            echo "✅ crawler-app.app copied successfully"
+            
+            # 创建 pkg 安装包
+            echo "Creating pkg installer..."
+            productbuild --component release/crawler-app.app /Applications release/crawler-app.pkg
+            echo "✅ crawler-app.pkg created successfully"
+          else
+            echo "❌ crawler-app.app not found in build/bin/"
+            exit 1
+          fi
           
           # 验证文件存在
+          echo "Release directory contents:"
           ls -la release/
 
       - name: Upload artifacts
@@ -122,25 +176,57 @@ jobs:
 
       - name: Display structure of downloaded files
         run: |
-          echo "Downloaded artifacts structure:"
-          find artifacts/ -type f -ls
+          echo "=== Downloaded artifacts structure ==="
+          find artifacts/ -type f -ls || echo "No files found in artifacts/"
+          
+          echo ""
+          echo "=== Detailed artifacts listing ==="
+          ls -la artifacts/ || echo "artifacts/ directory not found"
+          
+          if [ -d "artifacts/crawler-app-windows" ]; then
+            echo ""
+            echo "Windows artifacts:"
+            ls -la artifacts/crawler-app-windows/
+          fi
+          
+          if [ -d "artifacts/crawler-app-macos" ]; then
+            echo ""
+            echo "macOS artifacts:"
+            ls -la artifacts/crawler-app-macos/
+          fi
 
       - name: Prepare release files
         run: |
+          echo "=== Preparing release files ==="
           mkdir -p release-files
 
           # 复制 Windows 文件
           if [ -f "artifacts/crawler-app-windows/crawler-app.exe" ]; then
             cp "artifacts/crawler-app-windows/crawler-app.exe" "release-files/crawler-app-windows-amd64.exe"
+            echo "✅ Windows exe file copied"
+          else
+            echo "❌ Windows exe file not found at: artifacts/crawler-app-windows/crawler-app.exe"
           fi
 
           # 复制 macOS pkg 文件
           if [ -f "artifacts/crawler-app-macos/crawler-app.pkg" ]; then
             cp "artifacts/crawler-app-macos/crawler-app.pkg" "release-files/crawler-app-macos-amd64.pkg"
+            echo "✅ macOS pkg file copied"
+          else
+            echo "❌ macOS pkg file not found at: artifacts/crawler-app-macos/crawler-app.pkg"
           fi
 
-          echo "Release files prepared:"
+          echo ""
+          echo "=== Final release files ==="
           ls -la release-files/
+          
+          # 确保至少有一个文件存在
+          if [ -z "$(ls -A release-files/)" ]; then
+            echo "❌ No release files found! Exiting..."
+            exit 1
+          else
+            echo "✅ Release files are ready"
+          fi
 
       - name: Generate release notes
         id: release_notes
