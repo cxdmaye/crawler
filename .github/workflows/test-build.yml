@@ -44,7 +44,7 @@ jobs:
 
       - name: Test Wails build (Linux)
         run: |
-          wails build -platform linux/amd64 -clean
+          wails build -platform darwin/amd64 -clean
 
       - name: Verify build output
         run: |
