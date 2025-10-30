@@ -129,8 +129,14 @@ func (a *App) DownloadAndInstallUpdate(downloadURL string) error {
 		},
 	}
 	
-	// 应用更新
-	err = update.Apply(progressReader, update.Options{})
+	// 根据平台选择不同的更新策略
+	if goruntime.GOOS == "darwin" {
+		err = a.applyMacOSUpdate(progressReader, downloadURL)
+	} else {
+		// Windows 和 Linux 使用标准方式
+		err = update.Apply(progressReader, update.Options{})
+	}
+	
 	if err != nil {
 		runtime.EventsEmit(a.ctx, "update:download:error", map[string]interface{}{
 			"error": err.Error(),
@@ -142,6 +148,59 @@ func (a *App) DownloadAndInstallUpdate(downloadURL string) error {
 	runtime.EventsEmit(a.ctx, "update:download:complete", map[string]interface{}{
 		"status": "更新下载完成，请重启应用",
 	})
+	
+	return nil
+}
+
+// applyMacOSUpdate macOS 专用的更新逻辑
+func (a *App) applyMacOSUpdate(reader io.Reader, downloadURL string) error {
+	// 检查是否是 pkg 文件
+	if strings.Contains(downloadURL, ".pkg") {
+		return a.downloadAndInstallPkg(reader, downloadURL)
+	}
+	
+	// 对于其他文件类型，尝试标准更新，如果失败则提供手动安装指导
+	err := update.Apply(reader, update.Options{})
+	if err != nil {
+		// 如果标准更新失败，提供更详细的错误信息和解决方案
+		if strings.Contains(err.Error(), "permission") || strings.Contains(err.Error(), "denied") {
+			return fmt.Errorf("权限不足，无法自动更新。请：\n1. 手动下载新版本\n2. 或者以管理员权限运行应用\n3. 或者将应用移动到应用程序文件夹\n\n原始错误: %v", err)
+		}
+		return err
+	}
+	return nil
+}
+
+// downloadAndInstallPkg 下载并安装 pkg 文件（macOS 专用）
+func (a *App) downloadAndInstallPkg(reader io.Reader, downloadURL string) error {
+	// 创建临时文件
+	tmpDir := os.TempDir()
+	tmpFile := filepath.Join(tmpDir, "crawler-update.pkg")
+	
+	// 将下载内容写入临时文件
+	file, err := os.Create(tmpFile)
+	if err != nil {
+		return fmt.Errorf("创建临时文件失败: %v", err)
+	}
+	defer file.Close()
+	defer os.Remove(tmpFile) // 清理临时文件
+	
+	_, err = io.Copy(file, reader)
+	if err != nil {
+		return fmt.Errorf("保存下载文件失败: %v", err)
+	}
+	file.Close()
+	
+	// 使用系统的 installer 命令安装 pkg
+	// 这需要用户输入管理员密码
+	cmd := exec.Command("osascript", "-e", fmt.Sprintf(`
+		do shell script "installer -pkg '%s' -target /" with administrator privileges
+	`, tmpFile))
+	
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("安装失败: %v\n输出: %s", err, string(output))
+	}
 	
 	return nil
 }

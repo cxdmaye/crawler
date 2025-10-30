@@ -222,6 +222,25 @@
   color: #007acc;
 }
 
+.macos-permission-notice {
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 6px;
+  padding: 12px;
+  margin-top: 12px;
+  text-align: left;
+}
+
+.macos-permission-notice p {
+  margin: 0 0 4px 0;
+  font-size: 12px;
+  color: #856404;
+}
+
+.macos-permission-notice p:last-child {
+  margin-bottom: 0;
+}
+
 .update-dialog-actions {
   display: flex;
   justify-content: flex-end;

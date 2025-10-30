@@ -121,6 +121,10 @@ const UpdateDialog: React.FC = () => {
                   {isInstalling && (
                     <div className="installing-message">
                       <p>🔄 正在安装更新，请稍候...</p>
+                      <div className="macos-permission-notice">
+                        <p>💡 <strong>macOS 用户注意:</strong></p>
+                        <p>安装过程中可能需要输入管理员密码以完成更新</p>
+                      </div>
                     </div>
                   )}
                 </>
@@ -130,16 +134,16 @@ const UpdateDialog: React.FC = () => {
             <div className="update-dialog-actions">
               {updateError ? (
                 // 错误状态：只显示关闭按钮
-                <button 
-                  className="btn-primary" 
+                <button
+                  className="btn-primary"
                   onClick={closeDialog}
                 >
                   关闭
                 </button>
               ) : !updateStatus?.available ? (
                 // 无更新状态：只显示关闭按钮
-                <button 
-                  className="btn-primary" 
+                <button
+                  className="btn-primary"
                   onClick={closeDialog}
                 >
                   关闭
