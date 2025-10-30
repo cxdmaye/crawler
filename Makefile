@@ -43,15 +43,10 @@ build-darwin:
 	@wails build -platform darwin/amd64 -clean $(LDFLAGS)
 	@echo "✅ macOS 构建完成: build/bin/crawler-app.app"
 
-# 构建 Linux 版本
-build-linux:
-	@echo "🚀 开始构建 Linux 版本..."
-	@echo "版本: $(VERSION) | 提交: $(GIT_COMMIT)"
-	@wails build -platform linux/amd64 -clean $(LDFLAGS)
-	@echo "✅ Linux 构建完成: build/bin/crawler-app"
+
 
 # 构建所有平台
-build-all: build-windows build-darwin build-linux
+build-all: build-windows build-darwin
 
 # 清理构建文件
 clean:
@@ -96,13 +91,6 @@ package-darwin: build-darwin
 	@mkdir -p release
 	@cp -r build/bin/crawler-app.app release/
 	@echo "✅ macOS 发布包创建完成: release/crawler-app.app"
-
-package-linux: build-linux
-	@echo "📦 创建 Linux 发布包..."
-	@mkdir -p release
-	@cp build/bin/crawler-app release/
-	@chmod +x release/crawler-app
-	@echo "✅ Linux 发布包创建完成: release/crawler-app"
 
 # 创建所有发布包
 package-all: package-windows package-darwin package-linux
