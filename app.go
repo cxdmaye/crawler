@@ -7,12 +7,15 @@ import (
 
 // App struct
 type App struct {
-	ctx context.Context
+	ctx           context.Context
+	updateManager *UpdateManager
 }
 
 // NewApp creates a new App application struct
 func NewApp() *App {
-	return &App{}
+	app := &App{}
+	app.updateManager = NewUpdateManager(app)
+	return app
 }
 
 // startup is called when the app starts. The context is saved
@@ -20,8 +23,16 @@ func NewApp() *App {
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	
-	// 启动自动更新检查
-	a.AutoCheckUpdate()
+	// 启动更新管理器
+	a.updateManager.Start(ctx)
+}
+
+// shutdown is called when the app is closing
+func (a *App) shutdown(ctx context.Context) {
+	// 停止更新管理器
+	if a.updateManager != nil {
+		a.updateManager.Stop()
+	}
 }
 
 // Greet returns a greeting for the given name

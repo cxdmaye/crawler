@@ -1,13 +1,12 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
-	"runtime"
+	goruntime "runtime"
 	"time"
 
 	"github.com/Masterminds/semver/v3"
@@ -61,7 +60,7 @@ func NewUpdater(app *App) *Updater {
 	
 	return &Updater{
 		app:        app,
-		updateURL:  "https://api.github.com/repos/YOUR_USERNAME/YOUR_REPO/releases/latest",
+		updateURL:  "https://api.github.com/repos/cxdmaye/crawler/releases/latest",
 		currentVer: currentVer,
 	}
 }
@@ -96,8 +95,6 @@ func (a *App) CheckForUpdate() (*UpdateStatus, error) {
 
 // DownloadAndInstallUpdate 下载并安装更新
 func (a *App) DownloadAndInstallUpdate(downloadURL string) error {
-	updater := NewUpdater(a)
-	
 	// 发送开始下载事件
 	runtime.EventsEmit(a.ctx, "update:download:start", map[string]interface{}{
 		"status": "开始下载更新...",
@@ -229,7 +226,7 @@ func (u *Updater) fetchLatestVersion() (*UpdateInfo, error) {
 	
 	// 查找对应平台的下载链接
 	var downloadURL string
-	platform := runtime.GOOS
+	platform := goruntime.GOOS
 	
 	for _, asset := range release.Assets {
 		if platform == "windows" && (asset.Name == "crawler-app.exe" || 
