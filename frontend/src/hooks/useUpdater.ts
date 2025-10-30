@@ -68,16 +68,30 @@ export const useUpdater = () => {
     const checkForUpdate = async () => {
         try {
             setUpdateError(null);
+            setShowDialog(false);
             // 使用 window.go 来调用后端方法
             const status = await (window as any).go.main.App.CheckForUpdate();
             if (status.available) {
                 setUpdateStatus(status);
                 setShowDialog(true);
             } else {
-                alert('当前已是最新版本！');
+                // 显示无更新的消息
+                setUpdateStatus({
+                    available: false,
+                    current_version: status.current_version,
+                    latest_version: status.latest_version,
+                    download_url: '',
+                    changelog: '当前已是最新版本！',
+                    required: false
+                });
+                setShowDialog(true);
             }
         } catch (error) {
-            setUpdateError(error as string);
+            console.error('检查更新错误:', error);
+            // 显示错误对话框
+            setUpdateError(`检查更新失败: ${error}`);
+            setUpdateStatus(null);
+            setShowDialog(true);
         }
     };
 
@@ -85,18 +99,23 @@ export const useUpdater = () => {
     const downloadAndInstallUpdate = async (downloadURL: string) => {
         try {
             setUpdateError(null);
+            setIsDownloading(true);
             await (window as any).go.main.App.DownloadAndInstallUpdate(downloadURL);
         } catch (error) {
-            setUpdateError(error as string);
+            console.error('下载安装错误:', error);
+            setIsDownloading(false);
+            setUpdateError(`下载安装失败: ${error}`);
         }
     };
 
     // 重启应用
     const restartApp = async () => {
         try {
+            setUpdateError(null);
             await (window as any).go.main.App.RestartApp();
         } catch (error) {
-            setUpdateError(error as string);
+            console.error('重启应用错误:', error);
+            setUpdateError(`重启应用失败: ${error}`);
         }
     };
 

@@ -33,7 +33,7 @@ const UpdateDialog: React.FC = () => {
     <>
       {/* 检查更新按钮 */}
       <div className="update-check-container">
-        <button 
+        <button
           className="btn-check-update"
           onClick={checkForUpdate}
           disabled={isDownloading || isInstalling}
@@ -47,37 +47,56 @@ const UpdateDialog: React.FC = () => {
         <div className="update-dialog-overlay">
           <div className="update-dialog">
             <div className="update-dialog-header">
-              <h3>发现新版本</h3>
+              <h3>
+                {updateError ? '更新错误' :
+                  updateStatus?.available ? '发现新版本' : '检查更新'}
+              </h3>
               {!isDownloading && !isInstalling && (
                 <button className="btn-close" onClick={closeDialog}>×</button>
               )}
             </div>
 
             <div className="update-dialog-content">
-              {updateStatus && (
-                <>
-                  <div className="version-info">
-                    <p><strong>当前版本:</strong> {updateStatus.current_version}</p>
-                    <p><strong>最新版本:</strong> {updateStatus.latest_version}</p>
-                    {updateStatus.required && (
-                      <p className="required-update">⚠️ 这是一个必需的更新</p>
-                    )}
+              {/* 错误信息优先显示 */}
+              {updateError && (
+                <div className="error-message">
+                  <div className="error-icon">❌</div>
+                  <div className="error-text">
+                    <p><strong>发生错误:</strong></p>
+                    <p>{updateError}</p>
                   </div>
+                </div>
+              )}
 
-                  {updateStatus.changelog && (
-                    <div className="changelog">
-                      <h4>更新内容:</h4>
-                      <div className="changelog-content">
-                        {updateStatus.changelog.split('\n').map((line, index) => (
-                          <p key={index}>{line}</p>
-                        ))}
+              {/* 只有在没有错误时才显示更新内容 */}
+              {!updateError && updateStatus && (
+                <>
+                  {updateStatus.available ? (
+                    <>
+                      <div className="version-info">
+                        <p><strong>当前版本:</strong> {updateStatus.current_version}</p>
+                        <p><strong>最新版本:</strong> {updateStatus.latest_version}</p>
+                        {updateStatus.required && (
+                          <p className="required-update">⚠️ 这是一个必需的更新</p>
+                        )}
                       </div>
-                    </div>
-                  )}
 
-                  {updateError && (
-                    <div className="error-message">
-                      <p>❌ 错误: {updateError}</p>
+                      {updateStatus.changelog && (
+                        <div className="changelog">
+                          <h4>更新内容:</h4>
+                          <div className="changelog-content">
+                            {updateStatus.changelog.split('\n').map((line, index) => (
+                              <p key={index}>{line}</p>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="no-update-message">
+                      <div className="success-icon">✅</div>
+                      <p>当前已是最新版本！</p>
+                      <p><strong>当前版本:</strong> {updateStatus.current_version}</p>
                     </div>
                   )}
 
@@ -85,8 +104,8 @@ const UpdateDialog: React.FC = () => {
                     <div className="download-progress">
                       <p>正在下载更新...</p>
                       <div className="progress-bar">
-                        <div 
-                          className="progress-fill" 
+                        <div
+                          className="progress-fill"
                           style={{ width: `${downloadProgress.percent}%` }}
                         ></div>
                       </div>
@@ -109,32 +128,48 @@ const UpdateDialog: React.FC = () => {
             </div>
 
             <div className="update-dialog-actions">
-              {!isDownloading && !isInstalling && (
+              {updateError ? (
+                // 错误状态：只显示关闭按钮
+                <button 
+                  className="btn-primary" 
+                  onClick={closeDialog}
+                >
+                  关闭
+                </button>
+              ) : !updateStatus?.available ? (
+                // 无更新状态：只显示关闭按钮
+                <button 
+                  className="btn-primary" 
+                  onClick={closeDialog}
+                >
+                  关闭
+                </button>
+              ) : !isDownloading && !isInstalling ? (
+                // 有更新且未在处理：显示稍后提醒和立即更新
                 <>
-                  <button 
-                    className="btn-secondary" 
+                  <button
+                    className="btn-secondary"
                     onClick={closeDialog}
                     disabled={updateStatus?.required}
                   >
                     稍后提醒
                   </button>
-                  <button 
-                    className="btn-primary" 
+                  <button
+                    className="btn-primary"
                     onClick={handleDownloadUpdate}
                   >
                     立即更新
                   </button>
                 </>
-              )}
-
-              {isInstalling && (
-                <button 
-                  className="btn-primary" 
+              ) : isInstalling ? (
+                // 安装完成：显示重启按钮
+                <button
+                  className="btn-primary"
                   onClick={restartApp}
                 >
                   重启应用
                 </button>
-              )}
+              ) : null}
             </div>
           </div>
         </div>
