@@ -20,6 +20,7 @@ function App() {
             <img src={logo} id="logo" alt="logo" />
             <div id="result" className="result">{resultText}</div>
             <h2>Crawler</h2>
+            <button>测试更新版本</button>
             <div id="input" className="input-box">
                 <input id="name" className="input" onChange={updateName} autoComplete="off" name="input" type="text" />
                 <button className="btn" onClick={greet}>Greet</button>
