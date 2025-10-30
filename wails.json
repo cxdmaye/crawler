@@ -1,0 +1,30 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "crawler-app",
+  "outputfilename": "crawler-app",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "陈雪冬",
+    "email": "chenxuedong@qianxungroup.com"
+  },
+  "info": {
+    "companyName": "陈雪冬",
+    "productName": "Crawler App",
+    "productVersion": "1.0.0",
+    "copyright": "Copyright © 2024 陈雪冬",
+    "comments": "A powerful web crawler application"
+  },
+  "nsis": {
+    "allowElevation": true,
+    "enableSilentInstall": false,
+    "displayLanguageSelector": false,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "license": "",
+    "customScript": ""
+  },
+  "nsisType": "single"
+}
