@@ -6,7 +6,10 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
+	"path/filepath"
 	goruntime "runtime"
+	"strings"
 	"time"
 
 	"github.com/Masterminds/semver/v3"
@@ -173,10 +176,44 @@ func (a *App) RestartApp() error {
 		return fmt.Errorf("获取执行文件路径失败: %v", err)
 	}
 	
+	var cmd *exec.Cmd
+	
+	if goruntime.GOOS == "darwin" {
+		// macOS 特殊处理
+		if strings.Contains(executable, ".app/Contents/MacOS/") {
+			// 如果是在 .app 包内运行，使用 open 命令重启整个应用包
+			appPath := executable
+			for strings.Contains(appPath, "/Contents/MacOS/") {
+				appPath = filepath.Dir(appPath)
+			}
+			// 找到 .app 目录
+			for !strings.HasSuffix(appPath, ".app") && appPath != "/" {
+				appPath = filepath.Dir(appPath)
+			}
+			
+			if strings.HasSuffix(appPath, ".app") {
+				// 使用 open 命令重新启动应用
+				cmd = exec.Command("open", "-n", appPath)
+			} else {
+				// 回退到直接执行
+				cmd = exec.Command(executable, os.Args[1:]...)
+			}
+		} else {
+			// 非 .app 包情况，直接执行
+			cmd = exec.Command(executable, os.Args[1:]...)
+		}
+	} else {
+		// Windows 和 Linux
+		cmd = exec.Command(executable, os.Args[1:]...)
+	}
+	
+	// 设置命令属性
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+	
 	// 启动新进程
-	_, err = os.StartProcess(executable, os.Args, &os.ProcAttr{
-		Files: []*os.File{os.Stdin, os.Stdout, os.Stderr},
-	})
+	err = cmd.Start()
 	if err != nil {
 		return fmt.Errorf("重启应用失败: %v", err)
 	}
@@ -188,6 +225,7 @@ func (a *App) RestartApp() error {
 
 // fetchLatestVersion 获取最新版本信息
 func (u *Updater) fetchLatestVersion() (*UpdateInfo, error) {
+	fmt.Println("更新请求:", u.updateURL)
 	client := &http.Client{
 		Timeout: 30 * time.Second,
 	}
@@ -229,11 +267,12 @@ func (u *Updater) fetchLatestVersion() (*UpdateInfo, error) {
 	platform := goruntime.GOOS
 	
 	for _, asset := range release.Assets {
-		if platform == "windows" && (asset.Name == "crawler-app.exe" || 
+		fmt.Println("Asset Name:", asset.Name)
+		if platform == "windows" && (asset.Name == "crawler-app-windows-amd64.exe" || 
 			fmt.Sprintf("crawler-app-%s.exe", platform) == asset.Name) {
 			downloadURL = asset.BrowserDownloadURL
 			break
-		} else if platform == "darwin" && (asset.Name == "crawler-app.app" ||
+		} else if platform == "darwin" && (asset.Name == "crawler-app-macos-amd64.pkg" ||
 			fmt.Sprintf("crawler-app-%s.app", platform) == asset.Name) {
 			downloadURL = asset.BrowserDownloadURL
 			break
