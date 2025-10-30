@@ -237,13 +237,16 @@ jobs:
       - name: Generate release notes
         id: release_notes
         run: |
-          cat > release_notes.md << 'EOF'
+          # 获取当前构建时间
+          BUILD_TIME=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
+
+          cat > release_notes.md << EOF
           ## 🚀 Crawler App ${{ github.ref_name }}
 
           ### 📦 下载链接
 
-          - **Windows**: `crawler-app-windows-amd64.exe` - 直接运行的可执行文件
-          - **macOS**: `crawler-app-macos-amd64.pkg` - 标准安装包，双击安装
+          - **Windows**: \`crawler-app-windows-amd64.exe\` - 直接运行的可执行文件
+          - **macOS**: \`crawler-app-macos-amd64.pkg\` - 标准安装包，双击安装
 
           ### ✨ 主要功能
 
@@ -255,16 +258,16 @@ jobs:
           ### 🔧 安装说明
 
           #### Windows
-          直接运行 `crawler-app-windows-amd64.exe`
+          直接运行 \`crawler-app-windows-amd64.exe\`
 
           #### macOS
-          双击 `crawler-app-macos-amd64.pkg` 进行安装，安装完成后在应用程序文件夹中找到 Crawler App
+          双击 \`crawler-app-macos-amd64.pkg\` 进行安装，安装完成后在应用程序文件夹中找到 Crawler App
 
           ### 📅 构建信息
 
           - **版本**: ${{ github.ref_name }}
           - **提交**: ${{ github.sha }}
-          - **构建时间**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+          - **构建时间**: ${BUILD_TIME}
           - **Go 版本**: ${{ env.GO_VERSION }}
           EOF
 
