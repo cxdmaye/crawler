@@ -5,6 +5,12 @@ on:
     tags:
       - "v*"
 
+# 为 GITHUB_TOKEN 添加必要权限
+permissions:
+  contents: write
+  packages: write
+  actions: read
+
 env:
   GO_VERSION: "1.23"
   NODE_VERSION: "20"
@@ -75,7 +81,7 @@ jobs:
           # 构建应用
           Write-Host "Starting Wails build..."
           wails build -platform ${{ matrix.platform.target }} -clean -ldflags "-X 'main.Version=$VERSION' -X 'main.BuildTime=$BUILD_TIME' -X 'main.GitCommit=$GIT_COMMIT'"
-          
+
           Write-Host "Build completed. Checking output..."
           Get-ChildItem build/ -Recurse
 
@@ -97,7 +103,7 @@ jobs:
           # 构建应用
           echo "Starting Wails build..."
           wails build -platform ${{ matrix.platform.target }} -clean -ldflags "-X 'main.Version=${VERSION}' -X 'main.BuildTime=${BUILD_TIME}' -X 'main.GitCommit=${GIT_COMMIT}'"
-          
+
           echo "Build completed. Checking output..."
           find build/ -type f -name "*" || echo "No files found in build/"
 
@@ -107,11 +113,11 @@ jobs:
         run: |
           Write-Host "=== Windows Packaging ==="
           New-Item -ItemType Directory -Force -Path release
-          
+
           # 检查构建输出
           Write-Host "Build directory contents:"
           Get-ChildItem build/bin/ -Recurse
-          
+
           # 复制 exe 文件
           if (Test-Path "build/bin/crawler-app.exe") {
             Copy-Item build/bin/crawler-app.exe release/
@@ -120,7 +126,7 @@ jobs:
             Write-Host "❌ crawler-app.exe not found in build/bin/"
             exit 1
           }
-          
+
           # 验证文件存在
           Write-Host "Release directory contents:"
           Get-ChildItem release/
@@ -130,12 +136,12 @@ jobs:
         run: |
           echo "=== macOS Packaging ==="
           mkdir -p release
-          
+
           # 检查构建输出
           echo "Build directory contents:"
           find build/bin/ -type f -name "*" || echo "No files found"
           ls -la build/bin/ || echo "build/bin/ directory not found"
-          
+
           # 复制 app 文件
           if [ -d "build/bin/crawler-app.app" ]; then
             cp -r build/bin/crawler-app.app release/
@@ -149,7 +155,7 @@ jobs:
             echo "❌ crawler-app.app not found in build/bin/"
             exit 1
           fi
-          
+
           # 验证文件存在
           echo "Release directory contents:"
           ls -la release/
@@ -178,17 +184,17 @@ jobs:
         run: |
           echo "=== Downloaded artifacts structure ==="
           find artifacts/ -type f -ls || echo "No files found in artifacts/"
-          
+
           echo ""
           echo "=== Detailed artifacts listing ==="
           ls -la artifacts/ || echo "artifacts/ directory not found"
-          
+
           if [ -d "artifacts/crawler-app-windows" ]; then
             echo ""
             echo "Windows artifacts:"
             ls -la artifacts/crawler-app-windows/
           fi
-          
+
           if [ -d "artifacts/crawler-app-macos" ]; then
             echo ""
             echo "macOS artifacts:"
@@ -219,7 +225,7 @@ jobs:
           echo ""
           echo "=== Final release files ==="
           ls -la release-files/
-          
+
           # 确保至少有一个文件存在
           if [ -z "$(ls -A release-files/)" ]; then
             echo "❌ No release files found! Exiting..."
