@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './UpdateSettings.css';
+import './index.css';
 
 interface UpdateConfig {
     auto_check: boolean;
