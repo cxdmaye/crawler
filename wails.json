@@ -12,10 +12,10 @@
   },
   "info": {
     "companyName": "陈雪冬",
-    "productName": "Crawler App",
+    "productName": "Magic Input",
     "productVersion": "1.0.0",
     "copyright": "Copyright © 2024 陈雪冬",
-    "comments": "A powerful web crawler application"
+    "comments": "A tool for effortless text input generation"
   },
   "nsis": {
     "allowElevation": true,

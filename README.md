@@ -1,4 +1,4 @@
-# Crawler App
+# Magic Input
 
 一个基于 Wails 框架的现代化网络爬虫应用程序。
 

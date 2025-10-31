@@ -245,10 +245,10 @@ jobs:
         run: |
           # 获取当前构建时间
           BUILD_TIME=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
-          
+
           # 获取最近的提交信息（从上一个标签到当前标签）
           PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
-          
+
           if [ -n "$PREVIOUS_TAG" ]; then
             # 如果有上一个标签，获取两个标签之间的提交
             COMMIT_MESSAGES=$(git log --pretty=format:"- %s" ${PREVIOUS_TAG}..HEAD)
@@ -256,14 +256,14 @@ jobs:
             # 如果没有上一个标签，获取最近10个提交
             COMMIT_MESSAGES=$(git log --pretty=format:"- %s" -10)
           fi
-          
+
           # 如果没有提交信息，使用默认信息
           if [ -z "$COMMIT_MESSAGES" ]; then
             COMMIT_MESSAGES="- 版本更新"
           fi
 
           cat > release_notes.md << EOF
-          ## 🚀 Crawler App ${{ github.ref_name }}
+          ## 🚀 Magic Input ${{ github.ref_name }}
 
           ### 📦 下载链接
 
@@ -280,7 +280,7 @@ jobs:
           直接运行 \`crawler-app-windows-amd64.exe\`
 
           #### macOS
-          双击 \`crawler-app-macos-amd64.pkg\` 进行安装，安装完成后在应用程序文件夹中找到 Crawler App
+          双击 \`crawler-app-macos-amd64.pkg\` 进行安装，安装完成后在应用程序文件夹中找到 Magic Input
 
           ### 📅 构建信息
 

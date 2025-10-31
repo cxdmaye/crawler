@@ -1,4 +1,4 @@
-# Makefile for Crawler App
+# Makefile for Magic Input
 .PHONY: help build-windows build-darwin build-all clean dev install package-windows version test update-deps
 
 # 版本信息
@@ -11,7 +11,7 @@ LDFLAGS := -ldflags "-X 'main.Version=$(VERSION)' -X 'main.BuildTime=$(BUILD_TIM
 
 # 默认目标
 help:
-	@echo "Crawler App 构建工具"
+	@echo "Magic Input 构建工具"
 	@echo ""
 	@echo "可用命令:"
 	@echo "  build-windows  - 构建 Windows exe 文件"

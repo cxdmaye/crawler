@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/openai/openai-go"
@@ -241,6 +242,24 @@ func (a *App) parseAIResponse(aiResponse string) ([]AIAnalysisResult, error) {
 	return results, nil
 }
 
+// getConfigDir 获取配置目录路径
+func (a *App) getConfigDir() (string, error) {
+	// 优先使用用户配置目录
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		// 如果获取用户配置目录失败，使用用户主目录
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return "", fmt.Errorf("无法获取用户目录: %v", err)
+		}
+		configDir = homeDir
+	}
+	
+	// 创建应用专用配置目录
+	appConfigDir := filepath.Join(configDir, "crawler-app")
+	return appConfigDir, nil
+}
+
 // 辅助函数
 func min(a, b int) int {
 	if a < b {
@@ -251,19 +270,29 @@ func min(a, b int) int {
 
 // 辅助方法：保存配置到文件
 func (a *App) saveConfigToFile(filename string, data []byte) error {
-	configDir := ".crawler"
-	if err := os.MkdirAll(configDir, 0755); err != nil {
+	configDir, err := a.getConfigDir()
+	if err != nil {
 		return err
 	}
 	
-	filepath := fmt.Sprintf("%s/%s", configDir, filename)
-	return os.WriteFile(filepath, data, 0644)
+	// 创建配置目录
+	if err := os.MkdirAll(configDir, 0755); err != nil {
+		return fmt.Errorf("创建配置目录失败: %v", err)
+	}
+	
+	filePath := filepath.Join(configDir, filename)
+	return os.WriteFile(filePath, data, 0644)
 }
 
 // 辅助方法：从文件加载配置
 func (a *App) loadConfigFromFile(filename string) error {
-	filepath := fmt.Sprintf(".crawler/%s", filename)
-	data, err := os.ReadFile(filepath)
+	configDir, err := a.getConfigDir()
+	if err != nil {
+		return err
+	}
+	
+	filePath := filepath.Join(configDir, filename)
+	data, err := os.ReadFile(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil // 文件不存在，使用默认配置
