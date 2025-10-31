@@ -94,7 +94,7 @@ const SettingsPage: React.FC = () => {
                     <input
                         id="base-url"
                         type="url"
-                        value={config.base_url}
+                        value={config.model}
                         onChange={(e) => handleInputChange('model', e.target.value)}
                         placeholder="qwen3-max"
                         disabled={isSaving}

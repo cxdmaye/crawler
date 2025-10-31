@@ -17,12 +17,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     return (
         <div className="app-layout">
             <aside className={`sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`}>
-                <div className="sidebar-header">
+                <div className="sidebar-header flex flex-col">
 
                     <span className="toggle-button" onClick={toggleSidebar}>
                         {isSidebarCollapsed ? <Menu size={20} /> : <X size={20} />}
                     </span>
-                    {!isSidebarCollapsed && <h2>Magic</h2>}
+                    {!isSidebarCollapsed && <h2>MagicInput</h2>}
                 </div>
                 <nav className="sidebar-nav">
                     <NavLink
@@ -30,7 +30,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                         className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
                     >
                         <Home size={20} />
-                        {!isSidebarCollapsed && <span>主功能</span>}
+                        {!isSidebarCollapsed && <span>首页</span>}
                     </NavLink>
                     <NavLink
                         to="/settings"
