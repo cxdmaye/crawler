@@ -1,8 +1,12 @@
 import { useState } from 'react';
-import logo from './assets/images/logo-universal.png';
 import './App.css';
 import { Greet } from "../wailsjs/go/main/App";
-import UpdateDialog from './components/UpdateDialog';
+import UpdateDialog from '@/components/UpdateDialog';
+import Main from '@/page/Main';
+
+import "uno.css";
+import "virtual:unocss-devtools";
+
 
 function App() {
     const [resultText, setResultText] = useState("Please enter your name below 👇");
@@ -17,14 +21,7 @@ function App() {
     return (
         <div id="App">
             <UpdateDialog />
-            <img src={logo} id="logo" alt="logo" />
-            <div id="result" className="result">{resultText}</div>
-            <h2>Crawler</h2>
-            <button>测试更新版本</button>
-            <div id="input" className="input-box">
-                <input id="name" className="input" onChange={updateName} autoComplete="off" name="input" type="text" />
-                <button className="btn" onClick={greet}>Greet</button>
-            </div>
+            <Main />
         </div>
     )
 }
