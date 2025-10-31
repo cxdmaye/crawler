@@ -1,9 +1,14 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
+
+	"github.com/openai/openai-go"
+	"github.com/openai/openai-go/option"
 )
 
 const defaultPrompt = `# 角色
@@ -116,23 +121,121 @@ func (a *App) LoadAIConfig() error {
 	return a.loadConfigFromFile("ai_config.json")
 }
 
-// AnalyzeContent 分析内容 - 目前返回模拟数据
+// AnalyzeContent 分析内容 - 实际调用 AI 接口
 func (a *App) AnalyzeContent(content string) ([]AIAnalysisResult, error) {
 	if a.aiService.config.APIKey == "" {
 		return nil, fmt.Errorf("请先配置 API Key")
 	}
 	
-	// TODO: 实现真实的 AI 调用
-	// 目前返回模拟分析结果
-	results := []AIAnalysisResult{
-		{
-			Classification: "plaintext",
-			Type:           "sample",
-			Classify:       "示例分析",
-			Percent:        "80%",
-			Result:         fmt.Sprintf("分析内容: %s", content[:min(len(content), 50)]),
-			Suggestion:     "这是一个示例分析结果，实际 AI 功能正在开发中",
+	// 调用 AI 接口
+	response, err := a.callAIAPI(content)
+	if err != nil {
+		return nil, fmt.Errorf("调用 AI 接口失败: %v", err)
+	}
+	
+	// 解析 AI 响应
+	results, err := a.parseAIResponse(response)
+	if err != nil {
+		return nil, fmt.Errorf("解析 AI 响应失败: %v", err)
+	}
+	
+	return results, nil
+}
+
+// callAIAPI 调用 AI 接口
+func (a *App) callAIAPI(userContent string) (string, error) {
+	config := a.aiService.config
+	
+	fmt.Println("AI 原始请求:", userContent)
+	
+	// 创建 OpenAI 客户端
+	client := openai.NewClient(
+		option.WithAPIKey(config.APIKey),
+		option.WithBaseURL(config.BaseURL),
+	)
+	
+	// 调用 Chat Completions API
+	chatCompletion, err := client.Chat.Completions.New(
+		context.TODO(), 
+		openai.ChatCompletionNewParams{
+			Messages: []openai.ChatCompletionMessageParamUnion{
+				openai.SystemMessage(defaultPrompt),
+				openai.UserMessage(userContent),
+			},
+			Model:       config.Model,
+			Temperature: openai.Float(0.7),
+			MaxTokens:   openai.Int(2000),
 		},
+	)
+	
+	if err != nil {
+		return "", fmt.Errorf("调用 OpenAI API 失败: %v", err)
+	}
+	
+	fmt.Println("AI 原始响应:", chatCompletion.Choices[0].Message.Content)
+	
+	return chatCompletion.Choices[0].Message.Content, nil
+}
+
+// parseAIResponse 解析 AI 响应
+func (a *App) parseAIResponse(aiResponse string) ([]AIAnalysisResult, error) {
+	// 尝试从响应中提取 JSON 部分
+	jsonStart := strings.Index(aiResponse, "[")
+	jsonEnd := strings.LastIndex(aiResponse, "]")
+	
+	if jsonStart == -1 || jsonEnd == -1 || jsonStart >= jsonEnd {
+		// 如果没有找到 JSON 格式，返回一个包含原始响应的结果
+		return []AIAnalysisResult{
+			{
+				Classification: "unknown",
+				Type:           "text",
+				Classify:       "未知类型",
+				Percent:        "50%",
+				Result:         "AI 分析结果",
+				Suggestion:     aiResponse,
+			},
+		}, nil
+	}
+	
+	jsonStr := aiResponse[jsonStart : jsonEnd+1]
+	
+	// 解析 JSON
+	var results []AIAnalysisResult
+	err := json.Unmarshal([]byte(jsonStr), &results)
+	if err != nil {
+		// 如果 JSON 解析失败，返回包含原始响应的结果
+		return []AIAnalysisResult{
+			{
+				Classification: "unknown",
+				Type:           "text",
+				Classify:       "解析错误",
+				Percent:        "0%",
+				Result:         "JSON 解析失败",
+				Suggestion:     fmt.Sprintf("原始响应: %s", aiResponse),
+			},
+		}, nil
+	}
+	
+	// 验证和修正结果
+	for i := range results {
+		if results[i].Classification == "" {
+			results[i].Classification = "unknown"
+		}
+		if results[i].Type == "" {
+			results[i].Type = "text"
+		}
+		if results[i].Classify == "" {
+			results[i].Classify = "未知类型"
+		}
+		if results[i].Percent == "" {
+			results[i].Percent = "50%"
+		}
+		if results[i].Result == "" {
+			results[i].Result = "无法确定"
+		}
+		if results[i].Suggestion == "" {
+			results[i].Suggestion = "建议进一步分析"
+		}
 	}
 	
 	return results, nil
