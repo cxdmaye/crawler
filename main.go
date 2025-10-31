@@ -20,7 +20,6 @@ func main() {
 		Title:  "智能剪切板",
 		Width:  1024,
 		Height: 768,
-		Frameless:       true,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},

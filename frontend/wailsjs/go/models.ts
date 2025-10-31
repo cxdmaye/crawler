@@ -1,5 +1,43 @@
 export namespace main {
 	
+	export class AIAnalysisResult {
+	    classification: string;
+	    type: string;
+	    classify: string;
+	    percent: string;
+	    result: string;
+	    suggestion: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new AIAnalysisResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.classification = source["classification"];
+	        this.type = source["type"];
+	        this.classify = source["classify"];
+	        this.percent = source["percent"];
+	        this.result = source["result"];
+	        this.suggestion = source["suggestion"];
+	    }
+	}
+	export class AIConfig {
+	    api_key: string;
+	    base_url: string;
+	    model: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new AIConfig(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.api_key = source["api_key"];
+	        this.base_url = source["base_url"];
+	        this.model = source["model"];
+	    }
+	}
 	export class UpdateConfig {
 	    auto_check: boolean;
 	    check_interval: number;

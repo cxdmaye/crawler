@@ -1,0 +1,98 @@
+.app-layout {
+  display: flex;
+  height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.sidebar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  transition: all 0.3s ease;
+  width: 140px;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar.collapsed {
+  width: 60px;
+}
+
+.sidebar-header {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 60px;
+}
+
+.sidebar-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.toggle-button {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toggle-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 1rem 0;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: white;
+  text-decoration: none;
+  transition: all 0.2s;
+  border-radius: 0;
+  margin: 0.125rem 0.5rem;
+  border-radius: 0.375rem;
+}
+
+.nav-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.nav-item.active {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-weight: 500;
+}
+
+.nav-item span {
+  font-size: 0.875rem;
+}
+
+.sidebar.collapsed .nav-item {
+  justify-content: center;
+  margin: 0.125rem 0.25rem;
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  background-color: white;
+  margin: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}

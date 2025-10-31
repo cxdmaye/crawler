@@ -9,12 +9,14 @@ import (
 type App struct {
 	ctx           context.Context
 	updateManager *UpdateManager
+	aiService     *AIService
 }
 
 // NewApp creates a new App application struct
 func NewApp() *App {
 	app := &App{}
 	app.updateManager = NewUpdateManager(app)
+	app.aiService = NewAIService(app)
 	return app
 }
 
@@ -25,6 +27,11 @@ func (a *App) startup(ctx context.Context) {
 	
 	// 启动更新管理器
 	a.updateManager.Start(ctx)
+	
+	// 加载AI配置
+	if err := a.LoadAIConfig(); err != nil {
+		fmt.Printf("加载AI配置失败: %v\n", err)
+	}
 }
 
 // shutdown is called when the app is closing
